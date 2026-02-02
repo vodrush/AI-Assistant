@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { apiAskAI } from "../api/ai";
 import { apiGetHistory } from "../api/history";
 import { useAuth } from "../auth/AuthContext";
+import "./Dashboard.css";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -35,55 +36,46 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "40px auto" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
+    <div className="dashboard-container">
+      <div className="dashboard-header">
         <h2>Dashboard</h2>
-        <div>
-          <span style={{ marginRight: 12 }}>{user?.email}</span>
+        <div className="dashboard-user">
+          <span>{user?.email}</span>
           <button onClick={logout}>Logout</button>
         </div>
       </div>
 
-      <textarea
-        rows={4}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        placeholder="Pose ta question..."
-        style={{ width: "100%", marginTop: 12 }}
-      />
+      <div className="dashboard-input">
+        <textarea
+          rows={4}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Pose ta question..."
+        />
+        <button onClick={send} disabled={loading}>
+          {loading ? "Envoi..." : "Envoyer"}
+        </button>
+      </div>
 
-      <button onClick={send} disabled={loading} style={{ marginTop: 8 }}>
-        {loading ? "Envoi..." : "Envoyer"}
-      </button>
+      {err && <p className="dashboard-error">{err}</p>}
 
-      {err && <p style={{ color: "crimson" }}>{err}</p>}
+      <div className="dashboard-history">
+        <h3>Historique</h3>
 
-      <h3 style={{ marginTop: 24 }}>Historique</h3>
+        {messages.length === 0 && <p className="dashboard-empty">Aucun message.</p>}
 
-      {messages.length === 0 && <p>Aucun message.</p>}
-
-      {messages.map((m, idx) => (
-        <div
-          key={m.id ?? `${m.role}-${idx}`}
-          style={{
-            border: "1px solid #ddd",
-            padding: 12,
-            marginBottom: 10,
-            background: m.role === "assistant" ? "#fafafa" : "white",
-          }}
-        >
-          <div style={{ fontWeight: 700 }}>{m.role}</div>
-          <div style={{ marginTop: 6 }}>
-            {m.content ?? m.text ?? JSON.stringify(m)}
+        {messages.map((m, idx) => (
+          <div
+            key={m.id ?? `${m.role}-${idx}`}
+            className={`message-card ${m.role}`}
+          >
+            <div className="message-role">{m.role}</div>
+            <div className="message-content">
+              {m.content ?? m.text ?? JSON.stringify(m)}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

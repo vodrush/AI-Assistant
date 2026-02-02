@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import "./Register.css";
 
 export default function Register() {
   const { register } = useAuth();
@@ -21,17 +22,15 @@ export default function Register() {
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto" }}>
+    <div className="register-container">
       <h2>Register</h2>
       <form onSubmit={onSubmit}>
         <input
-          style={{ width: "100%", marginBottom: 8 }}
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
         <input
-          style={{ width: "100%", marginBottom: 8 }}
           placeholder="Mot de passe"
           type="password"
           value={password}
@@ -40,9 +39,9 @@ export default function Register() {
         <button type="submit">Créer</button>
       </form>
 
-      {err && <p style={{ color: "crimson" }}>{err}</p>}
+      {err && <p className="register-error">{err}</p>}
 
-      <p>
+      <p className="register-link">
         Déjà un compte ? <Link to="/login">Se connecter</Link>
       </p>
     </div>

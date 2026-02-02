@@ -8,6 +8,7 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import "./index.css";
 
 function NotFound() {
   return <div style={{ padding: 20 }}>404</div>;
