@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { apiLogin, apiRegister } from "../api/auth";
 
 const AuthContext = createContext(null);
 
@@ -10,17 +11,20 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem("token");
     const email = localStorage.getItem("email");
     if (token) setUser({ email: email || "Utilisateur" });
+    else setUser(null);
     setReady(true);
   }, []);
 
-  function login(email) {
-    localStorage.setItem("token", "test");
+  async function login(email, password) {
+    const data = await apiLogin(email, password);
+    localStorage.setItem("token", data.access_token);
     localStorage.setItem("email", email);
     setUser({ email });
   }
 
-  function register(email) {
-    login(email);
+  async function register(email, password) {
+    await apiRegister(email, password);
+    await login(email, password);
   }
 
   function logout() {

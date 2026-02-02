@@ -9,7 +9,14 @@ import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+function NotFound() {
+  return <div style={{ padding: 20 }}>404</div>;
+}
+
+const rootEl = document.getElementById("root");
+if (!rootEl) throw new Error('Root element "#root" introuvable');
+
+ReactDOM.createRoot(rootEl).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
@@ -25,6 +32,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               </ProtectedRoute>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

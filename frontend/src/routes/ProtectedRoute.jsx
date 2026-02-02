@@ -3,7 +3,9 @@ import { useAuth } from "../auth/AuthContext";
 
 export default function ProtectedRoute({ children }) {
   const { user, ready } = useAuth();
-  if (!ready) return null;
+
+  if (!ready) return <div style={{ padding: 20 }}>Chargement...</div>;
   if (!user) return <Navigate to="/login" replace />;
+
   return children;
 }

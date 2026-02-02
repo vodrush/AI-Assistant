@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Login() {
+  const { login } = useAuth();
+  const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
-  const nav = useNavigate();
-  const { login } = useAuth();
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -15,7 +15,7 @@ export default function Login() {
     try {
       await login(email, password);
       nav("/dashboard");
-    } catch {
+    } catch (e) {
       setErr("Identifiants invalides");
     }
   }
@@ -25,23 +25,25 @@ export default function Login() {
       <h2>Login</h2>
       <form onSubmit={onSubmit}>
         <input
+          style={{ width: "100%", marginBottom: 8 }}
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
         />
         <input
-          placeholder="Password"
+          style={{ width: "100%", marginBottom: 8 }}
+          placeholder="Mot de passe"
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{ width: "100%", marginBottom: 8 }}
         />
         <button type="submit">Se connecter</button>
       </form>
+
       {err && <p style={{ color: "crimson" }}>{err}</p>}
+
       <p>
-        Pas de compte ? <Link to="/register">Register</Link>
+        Pas de compte ? <Link to="/register">Créer un compte</Link>
       </p>
     </div>
   );
