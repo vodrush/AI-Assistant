@@ -1,5 +1,6 @@
 from database import create_user, get_user_by_email, get_user_by_id, add_message_to_conversation, get_conversation_history
 from security import hash_password, verify_password, create_access_token, verify_access_token
+from llm import appeler_ia
 
 print("=== TEST DATABASE ===")
 
@@ -53,4 +54,14 @@ print(f"Historique ({len(historique)} messages):")
 for msg in historique:
     print(f"  [{msg['role']}] {msg['content']}")
 
+print("\n=== TEST LLM ===")
+
+print("\n8. Appeler OpenRouter")
+messages = [
+    {"role": "user", "content": "Bonjour! Qui es-tu?"}
+]
+response = appeler_ia(messages)
+print(f"Réponse IA: {response}")
+
 print("\n=== TOUS LES TESTS PASSÉS ===")
+

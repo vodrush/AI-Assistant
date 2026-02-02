@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from models import UserRegister, UserLogin, PromptRequest
 from database import create_user, get_user_by_email, get_conversation_history, add_message_to_conversation
 from security import hash_password, verify_password, create_access_token, verify_access_token
+from llm import appeler_ia
 
 app = FastAPI(title="AI Assistant API")
 
@@ -56,7 +57,17 @@ def login(user_data: UserLogin):
 @app.post("/api/ai/ask")
 def ask_ai(prompt: PromptRequest, user_id: str = Depends(get_current_user)):
     add_message_to_conversation(user_id, "user", prompt.text)
-    ai_response = "Réponse IA simulée"
+    
+    historique = get_conversation_history(user_id)
+    
+    messages = []
+    for msg in historique:
+        messages.append({
+            "role": msg["role"],
+            "content": msg["content"]
+        })
+    
+    ai_response = appeler_ia(messages)
     add_message_to_conversation(user_id, "assistant", ai_response)
     
     return {
