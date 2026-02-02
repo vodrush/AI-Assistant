@@ -1,29 +1,34 @@
 import { useEffect, useState } from "react";
-import api from "../api/client";
+import { apiAskAI } from "../api/ai";
+import { apiGetHistory } from "../api/history";
 import { useAuth } from "../auth/AuthContext";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [text, setText] = useState("");
-  const [history, setHistory] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
 
   async function loadHistory() {
-    const r = await api.get("/history?limit=50");
-    setHistory(r.data);
+    const data = await apiGetHistory();
+    setMessages(data.messages || []);
   }
 
   useEffect(() => {
-    loadHistory();
+    loadHistory().catch(() => {});
   }, []);
 
   async function send() {
     if (!text.trim()) return;
     setLoading(true);
+    setErr("");
     try {
-      await api.post("/chat", { message: text });
+      await apiAskAI(text);
       setText("");
       await loadHistory();
+    } catch (e) {
+      setErr("Erreur lors de l’appel IA (token expiré ?)");
     } finally {
       setLoading(false);
     }
@@ -49,32 +54,36 @@ export default function Dashboard() {
         rows={4}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Écris ton message à l'IA..."
+        placeholder="Pose ta question..."
         style={{ width: "100%", marginTop: 12 }}
       />
+
       <button onClick={send} disabled={loading} style={{ marginTop: 8 }}>
         {loading ? "Envoi..." : "Envoyer"}
       </button>
 
+      {err && <p style={{ color: "crimson" }}>{err}</p>}
+
       <h3 style={{ marginTop: 24 }}>Historique</h3>
-      <div>
-        {history.map((h) => (
-          <div
-            key={h.id}
-            style={{ border: "1px solid #ddd", padding: 12, marginBottom: 10 }}
-          >
-            <div>
-              <strong>Prompt:</strong> {h.prompt}
-            </div>
-            <div style={{ marginTop: 6 }}>
-              <strong>Réponse:</strong> {h.response}
-            </div>
-            <div style={{ marginTop: 6, fontSize: 12, opacity: 0.7 }}>
-              {h.created_at} — {h.model}
-            </div>
+
+      {messages.length === 0 && <p>Aucun message.</p>}
+
+      {messages.map((m, idx) => (
+        <div
+          key={m.id ?? `${m.role}-${idx}`}
+          style={{
+            border: "1px solid #ddd",
+            padding: 12,
+            marginBottom: 10,
+            background: m.role === "assistant" ? "#fafafa" : "white",
+          }}
+        >
+          <div style={{ fontWeight: 700 }}>{m.role}</div>
+          <div style={{ marginTop: 6 }}>
+            {m.content ?? m.text ?? JSON.stringify(m)}
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
     </div>
   );
 }
