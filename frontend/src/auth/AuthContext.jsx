@@ -1,42 +1,39 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import api from "../api/client";
+import { apiLogin, apiRegister } from "../api/auth";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // { email }
   const [ready, setReady] = useState(false);
 
-  async function fetchMe() {
-    try {
-      const r = await api.get("/auth/me");
-      setUser(r.data);
-    } catch {
-      localStorage.removeItem("token");
-      setUser(null);
-    } finally {
-      setReady(true);
-    }
-  }
-
   useEffect(() => {
-    if (localStorage.getItem("token")) fetchMe();
-    else setReady(true);
+    const token = localStorage.getItem("token");
+    const email = localStorage.getItem("email");
+    if (token) setUser({ email: email || "Utilisateur" });
+    setReady(true);
   }, []);
 
   async function login(email, password) {
-    const r = await api.post("/auth/login", { email, password });
-    localStorage.setItem("token", r.data.access_token);
-    await fetchMe();
+    const data = await apiLogin(email, password);
+    localStorage.setItem("token", data.access_token);
+    localStorage.setItem("email", email);
+    setUser({ email });
+  }
+
+  async function register(email, password) {
+    await apiRegister(email, password);
+    await login(email, password);
   }
 
   function logout() {
     localStorage.removeItem("token");
+    localStorage.removeItem("email");
     setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, ready, login, logout }}>
+    <AuthContext.Provider value={{ user, ready, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
