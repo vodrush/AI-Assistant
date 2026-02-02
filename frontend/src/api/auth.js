@@ -1,7 +1,7 @@
 import api from "./client";
 
 export async function apiRegister(email, password) {
-  const r = await post("http://localhost:8000/api/auth/register", {
+  const r = await api.post(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
     email,
     password,
   });
@@ -9,7 +9,7 @@ export async function apiRegister(email, password) {
 }
 
 export async function apiLogin(email, password) {
-  const r = await api.post("http://localhost:8000/api/auth/login", {
+  const r = await api.post(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
     email,
     password,
   });
