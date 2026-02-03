@@ -62,7 +62,5 @@ def delete_conversation(user_id):
     removed = conversations_table.remove(Conversation.user_id == user_id)
     return len(removed) > 0
     return False
-=======
     removed = conversations_table.remove(Conversation.user_id == user_id)
     return len(removed) > 0
->>>>>>> dev
