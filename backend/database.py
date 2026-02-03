@@ -46,7 +46,7 @@ def add_message_to_conversation(user_id, role, content):
             if 'messages' not in doc:
                 doc['messages'] = []
             doc['messages'].append(message)
-            db.update(doc)
+            db.update(doc, doc_ids=[doc.doc_id])
             trouve = True
             break
     
@@ -65,3 +65,11 @@ def get_conversation_history(user_id):
             if 'messages' in doc:
                 return doc['messages']
     return []
+
+def delete_conversation(user_id):
+    tous_les_docs = db.all()
+    for doc in tous_les_docs:
+        if doc.get('user_id') == user_id and doc.get('type') == 'conversation':
+            db.remove(doc_ids=[doc.doc_id])
+            return True
+    return False
