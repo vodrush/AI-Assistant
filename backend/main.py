@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from models import UserRegister, UserLogin, PromptRequest
-from database import create_user, get_user_by_email, get_conversation_history, add_message_to_conversation
+from database import create_user, get_user_by_email, get_conversation_history, add_message_to_conversation, delete_conversation
 from security import hash_password, verify_password, create_access_token, verify_access_token
 from llm import appeler_ia
 
@@ -79,6 +79,11 @@ def ask_ai(prompt: PromptRequest, user_id: str = Depends(get_current_user)):
 def get_history(user_id: str = Depends(get_current_user)):
     messages = get_conversation_history(user_id)
     return {"messages": messages}
+
+@app.delete("/api/history")
+def delete_hist(user_id: str = Depends(get_current_user)):
+    delete_conversation(user_id)
+    return {"message": "Historique supprimé"}
 
 @app.get("/")
 def read_root():

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiAskAI } from "../api/ai";
-import { apiGetHistory } from "../api/history";
+import { apiGetHistory, apiDeleteHistory } from "../api/history";
 import { useAuth } from "../auth/AuthContext";
 import "./Dashboard.css";
 
@@ -17,7 +17,7 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    loadHistory().catch(() => {});
+    loadHistory().catch(() => { });
   }, []);
 
   async function send() {
@@ -32,6 +32,16 @@ export default function Dashboard() {
       setErr("Erreur lors de l’appel IA (token expiré ?)");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function clearHistory() {
+    if (!confirm("Voulez-vous vraiment TOUT effacer ?")) return;
+    try {
+      await apiDeleteHistory();
+      await loadHistory();
+    } catch (e) {
+      alert("Erreur lors de la suppression de l'historique");
     }
   }
 
@@ -60,7 +70,14 @@ export default function Dashboard() {
       {err && <p className="dashboard-error">{err}</p>}
 
       <div className="dashboard-history">
-        <h3>Historique</h3>
+        <div className="history-header">
+          <h3>Historique</h3>
+          {messages.length > 0 && (
+            <button className="clear-btn" onClick={clearHistory}>
+              Tout effacer
+            </button>
+          )}
+        </div>
 
         {messages.length === 0 && <p className="dashboard-empty">Aucun message.</p>}
 

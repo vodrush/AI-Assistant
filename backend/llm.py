@@ -28,4 +28,6 @@ def appeler_ia(messages):
         result = response.json()
         return result['choices'][0]['message']['content']
     else:
+        print(f"ERREUR OPENROUTER: {response.status_code}")
+        print(response.text)
         return f"Erreur OpenRouter: {response.status_code}"

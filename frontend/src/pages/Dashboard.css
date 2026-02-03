@@ -84,12 +84,7 @@
     margin-top: 10px;
 }
 
-.dashboard-history h3 {
-    margin-top: 30px;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-}
+
 
 .dashboard-empty {
     color: #888;
@@ -101,6 +96,35 @@
     padding: 15px;
     margin-bottom: 12px;
     border-radius: 8px;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    margin-top: 30px;
+    padding-bottom: 10px;
+}
+
+.history-header h3 {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+.clear-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.clear-btn:hover {
+    background: #c0392b;
 }
 
 .message-card.user {
