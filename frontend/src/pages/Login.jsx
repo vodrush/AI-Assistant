@@ -22,28 +22,49 @@ export default function Login() {
   }
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={onSubmit}>
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          placeholder="Mot de passe"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Se connecter</button>
-      </form>
+    <div className="login-wrapper">
+      <div className="bg-orb orb-1"></div>
+      <div className="bg-orb orb-2"></div>
+      
+      <div className="login-container">
+        <div className="login-header">
+          <div className="login-icon">🔐</div>
+          <h2>Connexion</h2>
+          <p className="login-subtitle">Accedez a votre assistant IA</p>
+        </div>
 
-      {err && <p className="login-error">{err}</p>}
+        <form onSubmit={onSubmit}>
+          <div className="input-group">
+            <span className="input-icon">📧</span>
+            <input
+              type="email"
+              name="email"
+              placeholder="Email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="input-group">
+            <span className="input-icon">🔑</span>
+            <input
+              type="password"
+              name="password"
+              placeholder="Mot de passe"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button type="submit">Se connecter</button>
+        </form>
 
-      <p className="login-link">
-        Pas de compte ? <Link to="/register">Créer un compte</Link>
-      </p>
+        {err && <p className="login-error">{err}</p>}
+
+        <p className="login-link">
+          Pas de compte ? <Link to="/register">Creer un compte</Link>
+        </p>
+      </div>
     </div>
   );
 }
