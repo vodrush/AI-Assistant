@@ -1,8 +1,12 @@
-from tinydb import TinyDB
+from tinydb import TinyDB, Query
 from datetime import datetime
 from uuid import uuid4
 
 db = TinyDB('db.json')
+users_table = db.table('users')
+conversations_table = db.table('conversations')
+User = Query()
+Conversation = Query()
 
 def create_user(email, hashed_password):
     user_id = str(uuid4())
@@ -12,22 +16,16 @@ def create_user(email, hashed_password):
         'hashed_password': hashed_password,
         'created_at': datetime.now().isoformat()
     }
-    db.insert(user)
+    users_table.insert(user)
     return user
 
 def get_user_by_email(email):
-    tous_les_docs = db.all()
-    for doc in tous_les_docs:
-        if doc.get('email') == email:
-            return doc
-    return None
+    result = users_table.search(User.email == email)
+    return result[0] if result else None
 
 def get_user_by_id(user_id):
-    tous_les_docs = db.all()
-    for doc in tous_les_docs:
-        if doc.get('id') == user_id:
-            return doc
-    return None
+    result = users_table.search(User.id == user_id)
+    return result[0] if result else None
 
 def add_message_to_conversation(user_id, role, content):
     timestamp = datetime.now().isoformat()
@@ -38,38 +36,33 @@ def add_message_to_conversation(user_id, role, content):
         'timestamp': timestamp
     }
     
-    tous_les_docs = db.all()
-    trouve = False
+    result = conversations_table.search(Conversation.user_id == user_id)
     
-    for doc in tous_les_docs:
-        if doc.get('user_id') == user_id and doc.get('type') == 'conversation':
-            if 'messages' not in doc:
-                doc['messages'] = []
-            doc['messages'].append(message)
-            db.update(doc, doc_ids=[doc.doc_id])
-            trouve = True
-            break
-    
-    if not trouve:
+    if result:
+        conversation = result[0]
+        if 'messages' not in conversation:
+            conversation['messages'] = []
+        conversation['messages'].append(message)
+        conversations_table.update(conversation, Conversation.user_id == user_id)
+    else:
         conversation = {
-            'type': 'conversation',
             'user_id': user_id,
-            'messages': [message]
+            'messages': [message],
+            'created_at': datetime.now().isoformat()
         }
-        db.insert(conversation)
+        conversations_table.insert(conversation)
 
 def get_conversation_history(user_id):
-    tous_les_docs = db.all()
-    for doc in tous_les_docs:
-        if doc.get('user_id') == user_id and doc.get('type') == 'conversation':
-            if 'messages' in doc:
-                return doc['messages']
+    result = conversations_table.search(Conversation.user_id == user_id)
+    if result and 'messages' in result[0]:
+        return result[0]['messages']
     return []
 
 def delete_conversation(user_id):
-    tous_les_docs = db.all()
-    for doc in tous_les_docs:
-        if doc.get('user_id') == user_id and doc.get('type') == 'conversation':
-            db.remove(doc_ids=[doc.doc_id])
-            return True
+    removed = conversations_table.remove(Conversation.user_id == user_id)
+    return len(removed) > 0
     return False
+=======
+    removed = conversations_table.remove(Conversation.user_id == user_id)
+    return len(removed) > 0
+>>>>>>> dev
