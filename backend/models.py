@@ -1,12 +1,15 @@
+"""
 from pydantic import BaseModel
 
-class UserRegister(BaseModel):
+
+class UserCredentials(BaseModel):
     email: str
     password: str
 
-class UserLogin(BaseModel):
-    email: str
-    password: str
+
+UserRegister = UserCredentials
+UserLogin = UserCredentials
+
 
 class PromptRequest(BaseModel):
     text: str

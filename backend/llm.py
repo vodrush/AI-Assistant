@@ -1,42 +1,41 @@
-import requests
 import os
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL")
+API_KEY = os.getenv("OPENROUTER_API_KEY")
+MODEL = os.getenv("OPENROUTER_MODEL")
+API_URL = "https://openrouter.ai/api/v1/chat/completions"
+TIMEOUT = 30
 
-def appeler_ia(messages):
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    
+
+def ask_ai(messages):
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json",
     }
     
     data = {
-        "model": OPENROUTER_MODEL,
+        "model": MODEL,
         "messages": messages,
         "temperature": 0.7,
         "max_tokens": 2000
     }
     
-    response = requests.post(url, json=data, headers=headers)
+    try:
+        response = requests.post(API_URL, json=data, headers=headers, timeout=TIMEOUT)
+    except requests.exceptions.RequestException as e:
+        return f"Erreur reseau: {e}"
     
-    if response.status_code == 200:
-        result = response.json()
-        
-        if 'choices' in result and len(result['choices']) > 0:
-            content = result['choices'][0]['message'].get('content', '')
-            
-            if not content:
-                return "Désolé, je n'ai pas pu générer de réponse. Essayez un autre modèle."
-            
-            return content
-        else:
-            return "Erreur: Réponse vide du modèle"
-    else:
-        print(f"ERREUR OPENROUTER: {response.status_code}")
-        print(response.text)
-        return f"Erreur OpenRouter: {response.status_code}"
+    if response.status_code != 200:
+        return f"Erreur API: {response.status_code}"
+    
+    result = response.json()
+    choices = result.get('choices', [])
+    
+    if not choices:
+        return "Erreur: Reponse vide du modele"
+    
+    content = choices[0].get('message', {}).get('content', '')
+    return content or "Desole, je n ai pas pu generer de reponse."

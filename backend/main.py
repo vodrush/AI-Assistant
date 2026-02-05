@@ -1,15 +1,20 @@
+import os
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+
 from models import UserRegister, UserLogin, PromptRequest
-from database import create_user, get_user_by_email, get_conversation_history, add_message_to_conversation, delete_conversation
-from security import hash_password, verify_password, create_access_token, verify_access_token
-from llm import appeler_ia
+from database import create_user, get_user_by_email, get_history, add_message, delete_history
+from security import hash_password, verify_password, create_token, verify_token
+from llm import ask_ai
+
+load_dotenv()
 
 app = FastAPI(title="AI Assistant API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[os.getenv("FRONTEND_URL", "http://localhost:5173")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -23,71 +28,61 @@ def get_current_user(request: Request):
         raise HTTPException(status_code=401, detail="Token manquant")
     
     token = auth_header.split(" ")[1]
-    user_id = verify_access_token(token)
+    user_id = verify_token(token)
     
-    if user_id is None:
-        raise HTTPException(status_code=401, detail="Token invalide ou expiré")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Token invalide ou expire")
     
     return user_id
 
 
 @app.post("/api/auth/register")
-def register(user_data: UserRegister):
-    user_existe = get_user_by_email(user_data.email)
-    if user_existe:
-        raise HTTPException(status_code=400, detail="Email déjà utilisé")
+def register(data: UserRegister):
+    if get_user_by_email(data.email):
+        raise HTTPException(status_code=400, detail="Email deja utilise")
     
-    password_hash = hash_password(user_data.password)
-    user = create_user(user_data.email, password_hash)
-    
+    user = create_user(data.email, hash_password(data.password))
     return {"id": user["id"], "email": user["email"]}
 
+
 @app.post("/api/auth/login")
-def login(user_data: UserLogin):
-    user = get_user_by_email(user_data.email)
-    if not user:
+def login(data: UserLogin):
+    user = get_user_by_email(data.email)
+    
+    if not user or not verify_password(data.password, user["hashed_password"]):
         raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
     
-    if not verify_password(user_data.password, user["hashed_password"]):
-        raise HTTPException(status_code=401, detail="Email ou mot de passe incorrect")
-    
-    token = create_access_token(user["id"])
-    return {"access_token": token, "token_type": "bearer"}
+    return {"access_token": create_token(user["id"]), "token_type": "bearer"}
+
 
 @app.post("/api/ai/ask")
-def ask_ai(prompt: PromptRequest, user_id: str = Depends(get_current_user)):
-    add_message_to_conversation(user_id, "user", prompt.text)
+def ask(prompt: PromptRequest, user_id: str = Depends(get_current_user)):
+    add_message(user_id, "user", prompt.text)
     
-    historique = get_conversation_history(user_id)
+    history = get_history(user_id)
+    messages = [{"role": m["role"], "content": m["content"]} for m in history]
     
-    messages = []
-    for msg in historique:
-        messages.append({
-            "role": msg["role"],
-            "content": msg["content"]
-        })
+    response = ask_ai(messages)
+    add_message(user_id, "assistant", response)
     
-    ai_response = appeler_ia(messages)
-    add_message_to_conversation(user_id, "assistant", ai_response)
-    
-    return {
-        "user_message": prompt.text,
-        "ai_response": ai_response
-    }
+    return {"user_message": prompt.text, "ai_response": response}
+
 
 @app.get("/api/history")
-def get_history(user_id: str = Depends(get_current_user)):
-    messages = get_conversation_history(user_id)
-    return {"messages": messages}
+def history(user_id: str = Depends(get_current_user)):
+    return {"messages": get_history(user_id)}
+
 
 @app.delete("/api/history")
-def delete_hist(user_id: str = Depends(get_current_user)):
-    delete_conversation(user_id)
-    return {"message": "Historique supprimé"}
+def clear_history(user_id: str = Depends(get_current_user)):
+    delete_history(user_id)
+    return {"message": "Historique supprime"}
+
 
 @app.get("/")
-def read_root():
+def root():
     return {"message": "API AI Assistant"}
+
 
 if __name__ == "__main__":
     import uvicorn

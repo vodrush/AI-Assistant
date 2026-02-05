@@ -10,8 +10,10 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const email = localStorage.getItem("email");
-    if (token) setUser({ email: email || "Utilisateur" });
-    else setUser(null);
+
+    if (token) {
+      setUser({ email: email || "Utilisateur" });
+    }
     setReady(true);
   }, []);
 
@@ -41,7 +43,9 @@ export function AuthProvider({ children }) {
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth doit être utilisé dans un AuthProvider");
+  }
+  return context;
 }
